@@ -1,0 +1,8 @@
+*.swp
+*.JIC*
+*.jic*
+*.crt
+*.key
+*.p12
+cert-mgt.conf
+*.srl
