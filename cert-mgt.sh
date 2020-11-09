@@ -143,11 +143,15 @@ cleanup_and_exit() {		# {{{2
     if [ $CREATE_CA -eq 1 ]; then
 	echo "Creating CA *Key* and *Root Certificate*"
 
-	read -s -p "New CA Cert's PassPhrase: " CAPHRASE
-	read -s -p "                  Verify: " VERIFY
-	if [ "$CAPHRASE" != "$VERIFY" ]; then
-	    echo "Phrases did not match.  Will not continue."
-	    cleanup_and_exit 1
+	if [ ! -f ${CA_PRIV_KEY} -o ! -f ${CA_ROOT_CERT} ]; then
+	    read -s -p "New CA Cert's PassPhrase: " CAPHRASE
+	    echo ""
+	    read -s -p "                  Verify: " VERIFY
+	    echo ""
+	    if [ "$CAPHRASE" != "$VERIFY" ]; then
+		echo "Phrases did not match.  Will not continue."
+		cleanup_and_exit 1
+	    fi
 	fi
 
 	if [ -f ${CA_PRIV_KEY} ]; then
@@ -156,6 +160,7 @@ cleanup_and_exit() {		# {{{2
 	    ${OPENSSLBIN} genrsa -des3 -out ${CA_PRIV_KEY} \
 		    -passout "pass:${CAPHRASE}" \
 		    2048
+	    chmod -w ${CA_PRIV_KEY}
 	fi
 
 	if [ -f ${CA_ROOT_CERT} ]; then
@@ -182,6 +187,8 @@ cleanup_and_exit() {		# {{{2
 			    -out ${CA_ROOT_P12} \
 			    -passin "pass:${CAPHRASE}" \
 			    -passout "pass:${P12PASSWORD}"
+
+	    chmod -w ${CA_ROOT_CERT} ${CA_ROOT_P12}
 	fi
 
     elif [ "$CREATE_CERT" != "" ]; then
@@ -201,7 +208,6 @@ cleanup_and_exit() {		# {{{2
 	fi
 
 	read -s -p "Your CA Cert's PassPhrase: " CAPHRASE
-
 	echo ""
 
 	if [ "$CREATE_CERT" != "all" ]; then
