@@ -16,6 +16,8 @@ ORG_UNIT="IT"
 COMMON_NAME="${ORG} Root Cert"
 EMAIL="me@example.com"
 
+HOST_CERT_VALIDITY_DAYS=$(( 3 * 30 ))
+
 # List of Domains and SANs to build by default.
 
 DOMAINS+=("example.com")

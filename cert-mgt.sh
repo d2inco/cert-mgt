@@ -236,9 +236,11 @@ cleanup_and_exit() {		# {{{2
 			echo "SAN: $SAN"
 			openssl req -new -key ${KEYFILE} -out signingReq.csr \
 				-nodes \
-				-subj "${SUBJECT}" -addext "subjectAltName=${SAN}"
+				-subj "${SUBJECT}" \
+				-addext "subjectAltName=${SAN}"
 		    else
 			openssl req -new -key ${KEYFILE} -out signingReq.csr \
+				-nodes \
 				-subj "${SUBJECT}"
 		    fi
 
@@ -257,12 +259,14 @@ cleanup_and_exit() {		# {{{2
 				    -sha256 \
 				    -CA ${CA_ROOT_CERT} -CAkey ${CA_PRIV_KEY} -CAcreateserial \
 				    -extfile <( echo "subjectAltName=${SAN}" ) \
+				    -days ${HOST_CERT_VALIDITY_DAYS} \
 				    -out ${CERTFILE} \
 				    -passin "pass:${CAPHRASE}"
 		    else
 			openssl x509 -req -days 365 -in signingReq.csr \
 				    -sha256 \
 				    -CA ${CA_ROOT_CERT} -CAkey ${CA_PRIV_KEY} -CAcreateserial \
+				    -days ${HOST_CERT_VALIDITY_DAYS} \
 				    -out ${CERTFILE} \
 				    -passin "pass:${CAPHRASE}"
 		    fi
