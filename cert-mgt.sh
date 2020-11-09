@@ -297,6 +297,7 @@ cleanup_and_exit() {		# {{{2
 				    -inkey ${KEYFILE} \
 				    -out ${P12FILE} \
 				    -certfile ${CA_ROOT_CERT} \
+				    -chain -CAfile ${CA_ROOT_CERT} \
 				    -passout "pass:${P12PASSWORD}"
 
 		else
