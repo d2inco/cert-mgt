@@ -144,6 +144,11 @@ cleanup_and_exit() {		# {{{2
 	echo "Creating CA *Key* and *Root Certificate*"
 
 	read -s -p "New CA Cert's PassPhrase: " CAPHRASE
+	read -s -p "                  Verify: " VERIFY
+	if [ "$CAPHRASE" != "$VERIFY" ]; then
+	    echo "Phrases did not match.  Will not continue."
+	    cleanup_and_exit 1
+	fi
 
 	if [ -f ${CA_PRIV_KEY} ]; then
 	    echo "CA Private Key already exists: ${CA_PRIV_KEY}"
@@ -252,7 +257,7 @@ cleanup_and_exit() {		# {{{2
 
 		    if [ ! -f signingReq.csr ]; then
 			echo "Stopping - signingReq.csr does not exist after creating it."
-			exit 1
+			cleanup_and_exit 1
 		    fi
 
 		    echo "---- verifying the CSR:"
@@ -278,6 +283,11 @@ cleanup_and_exit() {		# {{{2
 		    fi
 
 		    /bin/rm signingReq.csr
+
+		    if [ ! -s ${CERTFILE} ]; then
+			echo "Certificate file, ${CERTFILE}, was not created correctly.  Exiting."
+			cleanup_and_exit 1
+		    fi
 
 
 		    echo "----------------------------------------------------------------------"
