@@ -48,6 +48,12 @@ SANS=()
 # dont set a password on the P12 file
 P12PASSWORD=""
 
+if [ -f /usr/bin/openssl11 ]; then
+    OPENSSLBIN=/usr/bin/openssl11
+else
+    OPENSSLBIN=/usr/bin/openssl
+fi
+
 # }}}1
 ######################################################################
 #  Functions
@@ -142,7 +148,7 @@ cleanup_and_exit() {		# {{{2
 	if [ -f ${CA_PRIV_KEY} ]; then
 	    echo "CA Private Key already exists: ${CA_PRIV_KEY}"
 	else
-	    openssl genrsa -des3 -out ${CA_PRIV_KEY} \
+	    ${OPENSSLBIN} genrsa -des3 -out ${CA_PRIV_KEY} \
 		    -passout "pass:${CAPHRASE}" \
 		    2048
 	fi
@@ -158,14 +164,14 @@ cleanup_and_exit() {		# {{{2
 			)
 	    echo "Subject: $SUBJECT"
 
-	    openssl req -x509 -new -nodes -key ${CA_PRIV_KEY} -sha256 \
+	    ${OPENSSLBIN} req -x509 -new -nodes -key ${CA_PRIV_KEY} -sha256 \
 		    -days ${ROOT_CERT_VALIDITY_DAYS} -out ${CA_ROOT_CERT} \
 		    -subj "$SUBJECT" \
 		    -passin "pass:${CAPHRASE}"
 
 	    echo "----------------------------------------------------------------------"
 	    echo "CERT-MGT: creating related .p12 certificate"
-	    openssl pkcs12 -export \
+	    ${OPENSSLBIN} pkcs12 -export \
 			    -in ${CA_ROOT_CERT} \
 			    -inkey ${CA_PRIV_KEY} \
 			    -out ${CA_ROOT_P12} \
@@ -223,8 +229,8 @@ cleanup_and_exit() {		# {{{2
 
 		    echo ""
 		    echo "CERT-MGT: creating server key: ${DOMAIN} (encrypted and plaintext)"
-		    openssl genrsa -des3 -out ${KEYFILE}-pass -passout "pass:temppass"
-		    openssl rsa -in ${KEYFILE}-pass -out ${KEYFILE} -passin "pass:temppass"
+		    ${OPENSSLBIN} genrsa -des3 -out ${KEYFILE}-pass -passout "pass:temppass"
+		    ${OPENSSLBIN} rsa -in ${KEYFILE}-pass -out ${KEYFILE} -passin "pass:temppass"
 		    rm ${KEYFILE}-pass
 
 
@@ -234,12 +240,12 @@ cleanup_and_exit() {		# {{{2
 			SAN=$( for D in ${ADDON}; do echo -n "DNS:${D},"; done )
 			SAN=${SAN:0:-1}
 			echo "SAN: $SAN"
-			openssl req -new -key ${KEYFILE} -out signingReq.csr \
+			${OPENSSLBIN} req -new -key ${KEYFILE} -out signingReq.csr \
 				-nodes \
 				-subj "${SUBJECT}" \
 				-addext "subjectAltName=${SAN}"
 		    else
-			openssl req -new -key ${KEYFILE} -out signingReq.csr \
+			${OPENSSLBIN} req -new -key ${KEYFILE} -out signingReq.csr \
 				-nodes \
 				-subj "${SUBJECT}"
 		    fi
@@ -250,12 +256,12 @@ cleanup_and_exit() {		# {{{2
 		    fi
 
 		    echo "---- verifying the CSR:"
-		    openssl req -text -noout -in signingReq.csr | egrep 'DNS:|Extension|Alternative|Subject:'
+		    ${OPENSSLBIN} req -text -noout -in signingReq.csr | egrep 'DNS:|Extension|Alternative|Subject:'
 
 		    echo "----------------------------------------------------------------------"
 		    echo "CERT-MGT: creating signed certificate"
 		    if [ "$ADDON" != "" ]; then
-			openssl x509 -req -days 365 -in signingReq.csr \
+			${OPENSSLBIN} x509 -req -days 365 -in signingReq.csr \
 				    -sha256 \
 				    -CA ${CA_ROOT_CERT} -CAkey ${CA_PRIV_KEY} -CAcreateserial \
 				    -extfile <( echo "subjectAltName=${SAN}" ) \
@@ -263,7 +269,7 @@ cleanup_and_exit() {		# {{{2
 				    -out ${CERTFILE} \
 				    -passin "pass:${CAPHRASE}"
 		    else
-			openssl x509 -req -days 365 -in signingReq.csr \
+			${OPENSSLBIN} x509 -req -days 365 -in signingReq.csr \
 				    -sha256 \
 				    -CA ${CA_ROOT_CERT} -CAkey ${CA_PRIV_KEY} -CAcreateserial \
 				    -days ${HOST_CERT_VALIDITY_DAYS} \
@@ -276,7 +282,7 @@ cleanup_and_exit() {		# {{{2
 
 		    echo "----------------------------------------------------------------------"
 		    echo "CERT-MGT: creating related .p12 certificate"
-		    openssl pkcs12 -export \
+		    ${OPENSSLBIN} pkcs12 -export \
 				    -in ${CERTFILE} \
 				    -inkey ${KEYFILE} \
 				    -out ${P12FILE} \
