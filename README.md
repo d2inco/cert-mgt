@@ -24,3 +24,13 @@ or with Subject Alternative Names:
 ```
     ./cert-mgt.sh --create-cert example.com --add-on "www.example.com test.example.com"
 ```
+----
+To get the CA into place:
+* CentOS:
+  * Copy the .crt file to `/etc/pki/ca-trust/source/anchors`
+  * run `update-ca-trust`
+* Ubuntu
+  * Copy the .crt file to `/usr/local/share/ca-certificates/`
+  * run `update-ca-certificates`
+    * (if you remove certificates, run `update-ca-certificates --fresh`)
+----
