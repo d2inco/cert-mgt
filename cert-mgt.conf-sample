@@ -19,6 +19,9 @@ EMAIL="me@example.com"
 HOST_CERT_VALIDITY_DAYS=$(( 3 * 30 ))
 
 # List of Domains and SANs to build by default.
+# DOMAINS+=("onedomain.com")
+# SANS+=("empty-or space.com separated.com list.com")
+# every 'DOMAINS+=()' needs a corresponding 'SANS+=()'
 
 DOMAINS+=("example.com")
 # SANs are separated with a Space
@@ -32,4 +35,3 @@ DOMAINS+=("example.org")
 SANS+=("foo.example.org bar.example.org test.example.com")
 
 ########################################
-
