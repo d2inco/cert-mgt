@@ -31,11 +31,13 @@ DEBUG=0
 
 CREATE_CA=0
 CREATE_CERT=""
-ADDONLIST=""
+ADDONDOMAINS=""
+ADDONIPS=""
 
-# Declare DOMAINS and ADDONS before reading the .conf file
+# Declare DOMAINS and SANS and IPS before reading the .conf file
 DOMAINS=()
 SANS=()
+IPS=()
 
 . cert-mgt.conf
 
@@ -69,7 +71,7 @@ usage() {			# {{{2
     echo " Usage:"
     echo "     $0 [-xvs]"
     echo "        [--create-ca]"
-    echo "        [--create-cert ( <FQDN> | all ) [--add-on '<FQDNLIST>' ]]"
+    echo "        [--create-cert ( <FQDN> | all ) [--add-on-domains '<FQDN-LIST>' ] [--add-on-ips '<IP-LIST>' ]]"
     echo ""
     echo "       -s                Silent Mode"
     echo "       -v                Verbose Mode"
@@ -104,7 +106,8 @@ cleanup_and_exit() {		# {{{2
 	    case "$1" in
 		    --create-ca)		CREATE_CA=1; shift ;;
 		    --create-cert)		CREATE_CERT="$2"; shift 2 ;;
-		    --add-on)			ADDONLIST="$2"; shift 2 ;;
+		    --add-on-domains)		ADDONDOMAINS="$2"; shift 2 ;;
+		    --add-on-ips)		ADDONIPS="$2"; shift 2 ;;
 		    -s|--silent)		SILENT=1; shift ;;
 		    -v|--verbose)		VERBOSE=$[ $VERBOSE + 1 ]; shift ;;
 		    -x|--debug) 		DEBUG=$[ $DEBUG + 1 ]; shift ;;
@@ -212,7 +215,8 @@ cleanup_and_exit() {		# {{{2
 
 	if [ "$CREATE_CERT" != "all" ]; then
 	    DOMAINS=("$CREATE_CERT")
-	    SANS=("$ADDONLIST")
+	    SANS=("$ADDONDOMAINS")
+	    IPS=("$ADDONIPS")
 	fi
 
 	for i
@@ -220,7 +224,8 @@ cleanup_and_exit() {		# {{{2
 	    printf "%3d  Domain: %-20s   SANs: '%s'\n" "$i" "${DOMAINS[$i]}" "${SANS[$i]}"
 
 	    DOMAIN="${DOMAINS[$i]}"
-	    ADDON="${SANS[$i]}"
+	    ADDONDNS="${SANS[$i]}"
+	    ADDONIPS="${IPS[$i]}"
 
 	    if [ "$DOMAIN" != "" ]; then
 
@@ -250,10 +255,18 @@ cleanup_and_exit() {		# {{{2
 
 		    echo "----------------------------------------------------------------------"
 		    echo "CERT-MGT: creating signing request"
-		    if [ "$ADDON" != "" ]; then
-			SAN=$( for D in ${ADDON}; do echo -n "DNS:${D},"; done )
+		    if [ "$ADDONDNS" != "" -o "$ADDONIPS" != "" ]; then
+			SAN=$( for D in ${ADDONDNS}; do echo -n "DNS:${D},"; done )
 			SAN=${SAN:0:-1}
 			echo "SAN: $SAN"
+			IP=$( for D in ${ADDONIPS}; do echo -n "IP:${D},"; done )
+			IP=${IP:0:-1}
+			echo "IPs: $IP"
+			if [ "$SAN" != "" -a "$IP" != "" ]; then
+			    SAN="${SAN},${IP}"
+			elif [ "$SAN" = "" ]; then
+			    SAN="${IP}"
+			fi
 			${OPENSSLBIN} req -new -key ${KEYFILE} -out signingReq.csr \
 				-nodes \
 				-subj "${SUBJECT}" \
@@ -274,7 +287,7 @@ cleanup_and_exit() {		# {{{2
 
 		    echo "----------------------------------------------------------------------"
 		    echo "CERT-MGT: creating signed certificate"
-		    if [ "$ADDON" != "" ]; then
+		    if [ "$ADDONDNS" != "" -o "$ADDONIPS" != "" ]; then
 			${OPENSSLBIN} x509 -req -days 365 -in signingReq.csr \
 				    -sha256 \
 				    -CA ${CA_ROOT_CERT} -CAkey ${CA_PRIV_KEY} -CAcreateserial \

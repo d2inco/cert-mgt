@@ -21,17 +21,21 @@ HOST_CERT_VALIDITY_DAYS=$(( 3 * 30 ))
 # List of Domains and SANs to build by default.
 # DOMAINS+=("onedomain.com")
 # SANS+=("empty-or space.com separated.com list.com")
+# IPS+=("empty-or-space-separated-IP-addresses")
 # every 'DOMAINS+=()' needs a corresponding 'SANS+=()'
 
 DOMAINS+=("example.com")
 # SANs are separated with a Space
 SANS+=("www.example.com www2.example.com")
+IPS+=("1.2.3.4 127.0.0.1")
 
 # No Subject Alternative Names Here
 DOMAINS+=("example.net")
 SANS+=("")
+IPS+=("")
 
 DOMAINS+=("example.org")
 SANS+=("foo.example.org bar.example.org test.example.com")
+IPS+=("")
 
 ########################################
