@@ -34,3 +34,7 @@ To get the CA into place:
   * run `update-ca-certificates`
     * (if you remove certificates, run `update-ca-certificates --fresh`)
 ----
+For elasticsearch:
+* You'll want to put in place the `.p12` file for elasticsearch
+For logstash:
+* You'll want to use the `.crt` and `.p8` files (NO passphrase).

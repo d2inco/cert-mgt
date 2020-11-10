@@ -4,5 +4,6 @@
 *.crt
 *.key
 *.p12
+*.key-p8
 cert-mgt.conf
 *.srl
