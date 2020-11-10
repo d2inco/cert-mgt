@@ -227,8 +227,10 @@ cleanup_and_exit() {		# {{{2
 		KEYFILE="${DOMAIN}.key"
 		CERTFILE="${DOMAIN}.crt"
 		P12FILE="${DOMAIN}.p12"
+		P8KEYFILE="${DOMAIN}.key-p8"
 
 		if [ ! -f ${KEYFILE} \
+		  -o ! -f ${P8KEYFILE} \
 		  -o ! -f ${CERTFILE} \
 		  -o ! -f ${P12FILE} \
 		    ]; then
@@ -242,6 +244,7 @@ cleanup_and_exit() {		# {{{2
 		    echo "CERT-MGT: creating server key: ${DOMAIN} (encrypted and plaintext)"
 		    ${OPENSSLBIN} genrsa -des3 -out ${KEYFILE}-pass -passout "pass:temppass"
 		    ${OPENSSLBIN} rsa -in ${KEYFILE}-pass -out ${KEYFILE} -passin "pass:temppass"
+		    ${OPENSSLBIN} pkcs8 -in ${KEYFILE} -topk8 -passout 'pass:' -out ${P8KEYFILE}
 		    rm ${KEYFILE}-pass
 
 
